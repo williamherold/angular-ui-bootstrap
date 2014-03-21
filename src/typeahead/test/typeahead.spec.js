@@ -81,6 +81,21 @@ describe('typeahead tests', function () {
           return 'Expected "' + this.actual + '" to be opened.';
         };
         return typeaheadEl.length === 1 && liEls.length === noOfMatches && $(liEls[activeIdx]).hasClass('active');
+      }, toBeOpenButInactive: function (noOfMatches) {
+
+        var typeaheadEl = findDropDown(this.actual);
+        var liEls = findMatches(this.actual);
+
+        this.message = function () {
+          return 'Expected "' + this.actual + '" to be opened.';
+        };
+
+        var hasActive = false;
+        $.each(liEls, function(index, liEl) {
+          hasActive |= $(liEl).hasClass('active');
+        });
+
+        return liEls.length === noOfMatches && !hasActive;
       }
     });
   });
@@ -591,6 +606,13 @@ describe('typeahead tests', function () {
 
       $(match).click();
       $scope.$digest();
+    });
+
+    it('expect no match to be selected if typeahead-auto-highlight is set to false', function () {
+      var element = prepareInputEl('<div><input ng-model="result" typeahead="item for item in source | filter:$viewValue" typeahead-auto-highlight="false"></div>');
+
+      changeInputValueTo(element, 'b');
+      expect(element).toBeOpenButInactive(2);
     });
   });
 

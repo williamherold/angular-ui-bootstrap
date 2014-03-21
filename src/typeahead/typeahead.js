@@ -59,6 +59,9 @@ angular.module('ui.bootstrap.typeahead', ['ui.bootstrap.position', 'ui.bootstrap
 
       var appendToBody =  attrs.typeaheadAppendToBody ? originalScope.$eval(attrs.typeaheadAppendToBody) : false;
 
+      //should first item of matches be highlighted automatically?
+      var autoHighlight = originalScope.$eval(attrs.typeaheadAutoHighlight) !== false;
+
       //INTERNAL VARIABLES
 
       //model setter executed upon match selection
@@ -114,7 +117,8 @@ angular.module('ui.bootstrap.typeahead', ['ui.bootstrap.position', 'ui.bootstrap
           if (onCurrentRequest && hasFocus) {
             if (matches.length > 0) {
 
-              scope.activeIdx = 0;
+              //if autoHighlight, activates first item of matches
+              scope.activeIdx = autoHighlight === true ? 0 : -1;
               scope.matches.length = 0;
 
               //transform labels
@@ -245,22 +249,29 @@ angular.module('ui.bootstrap.typeahead', ['ui.bootstrap.position', 'ui.bootstrap
           return;
         }
 
-        evt.preventDefault();
-
         if (evt.which === 40) {
+          evt.preventDefault();
           scope.activeIdx = (scope.activeIdx + 1) % scope.matches.length;
           scope.$digest();
 
         } else if (evt.which === 38) {
+          evt.preventDefault();
           scope.activeIdx = (scope.activeIdx ? scope.activeIdx : scope.matches.length) - 1;
           scope.$digest();
 
         } else if (evt.which === 13 || evt.which === 9) {
+          if (scope.activeIdx === -1) {
+            //skip if no matches or no match selected
+            resetMatches();
+            return;
+          }
+          evt.preventDefault();
           scope.$apply(function () {
             scope.select(scope.activeIdx);
           });
 
         } else if (evt.which === 27) {
+          evt.preventDefault();
           evt.stopPropagation();
 
           resetMatches();
